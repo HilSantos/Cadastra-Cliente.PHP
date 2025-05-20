@@ -2,7 +2,7 @@
 Criação do cadastracliente.php
 
 <?php
-
+include('segurancadez.php');
 include('conn.php');
 
 if($_SERVER['REQUEST_METHOD']=='POST'){
@@ -63,6 +63,9 @@ exit();
 <body>
     <h1>Cadastra Usuario</h1>
     <br>
+    <?php
+include('msg_user.php');
+?>
     <form action="cadastracliente.php" method="post">
         <label for="nome">Nome:</label>
         <input type="text" name="nome" id="nome" maxlength="50" required>
