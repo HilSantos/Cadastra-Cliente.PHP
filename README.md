@@ -3,11 +3,12 @@ Criação do cadastracliente.php
 
 <?php
 include('segurancadez.php');
+include('cabecalho.php');
 include('conn.php');
 
 if($_SERVER['REQUEST_METHOD']=='POST'){
     $nome = $_POST['nome'];
-    $apelido = $_POST['alias'];
+    $apelido = $_POST['apelido'];
     $cpf = $_POST['cpf'];
     $email = $_POST['email'];
     $cep = $_POST['cep'];
@@ -40,9 +41,9 @@ if($quant[0] == 1){
 }
 $sql ="INSERT INTO `tb_usuarios`(`nome_usuario`, `apelido_usuario`, `cpf_usuario`, `email_usuario`, `cep_usuario`, 
 `rua_usuario`, `numero_rua_usuario`, `bairro_usuario`, `cidade_usuario`, `uf_usuario`, `nascimento_usuario`, `senha_usuario`, 
-`telefone_usuario`, `nivel_usuario`) VALUES ('$nome','$apelido'
+`telefone_usuario`, `nivel_usuario`, `tempero_usuario`) VALUES ('$nome','$apelido'
 ,'$cpf','$email','$cep','$rua','$numero','$bairro','$cidade','$uf','$nascimento','$senha',
-'$telefone','$nivel')";
+'$telefone','$nivel','$tempero')";
 
 mysqli_query($link,$sql);
 
@@ -125,9 +126,9 @@ include('msg_user.php');
             const cepInput = document.getElementById("cep");
  
   cepInput.addEventListener("blur", function() {
-                let cep = cepInput.value.replace(/\D/g, ''); // Remove tudo que não é número
+                let cep = cepInput.value.replace(/\D/g, ''); // Remove tudo que não é número //
  
-  if (cep.length === 8) { // Valida se são 8 dígitos
+  if (cep.length === 8) { // Valida se são 8 dígitos //
                     fetch(`https://viacep.com.br/ws/${cep}/json/`)
                         .then(response => {
                             if (!response.ok) {
