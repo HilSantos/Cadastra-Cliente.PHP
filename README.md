@@ -2,11 +2,13 @@
 Criação do cadastracliente.php
 
 <?php
+// Inclui arquivos de segurança, cabeçalho e conexão com o banco de dados //
 include('segurancadez.php');
 include('cabecalho.php');
 include('conn.php');
-
+// Verifica se a requisição foi enviada via método POST //
 if($_SERVER['REQUEST_METHOD']=='POST'){
+    // Captura os dados do formulário //
     $nome = $_POST['nome'];
     $apelido = $_POST['apelido'];
     $cpf = $_POST['cpf'];
@@ -23,34 +25,39 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
     $senha = $_POST['senha'];
     $senha2 = $_POST['senha2'];
 
-    //verifique se as senhas são iguais//
-    if($senha!=$senha2){
+    // Verifique se as senhas são iguais //
+    if($senha != $senha2){
         header('Location:cadastracliente.php?msg=As senhas devem ser iguais');
         exit();
     }
 
+    // Criação do tempero para segurança da senha //
+    $tempero = rand(100000000,999999999) . date("Y-m-d H:i:s") . strrev($senha);
+    $tempero = md5($tempero);
+    $senha = md5($senha . $tempero);
 
-//verifique se o e-mail está cadastrado//
-$sql = "SELECT COUNT(*) FROM tb_usuarios WHERE email_usuario = '$email'";
-$result = mysqli_query($link, $sql);
-$quant = mysqli_fetch_array($result);
+    // Verifica se o e-mail já está cadastrado //
+    $sql = "SELECT COUNT(*) FROM tb_usuarios WHERE email_usuario = '$email'";
+    $result = mysqli_query($link, $sql);
+    $quant = mysqli_fetch_array($result);
+    // Se o e-mail já existir, retorna erro e interrompe o cadastro //
+    if($quant[0] == 1){
+        header('Location: cadastracliente.php?msg=Email já cadastrado');
+        exit();
+    }
 
-if($quant[0] == 1){
-    header('Location: cadastracliente.php?msg=Email já cadastrado');
+    // Inserção do novo usuário no banco de dados //
+    $sql ="INSERT INTO `tb_usuarios`(`nome_usuario`, `apelido_usuario`, `cpf_usuario`, `email_usuario`, `cep_usuario`, 
+    `rua_usuario`, `numero_rua_usuario`, `bairro_usuario`, `cidade_usuario`, `uf_usuario`, `nascimento_usuario`, `senha_usuario`, 
+    `telefone_usuario`, `nivel_usuario`, `tempero_usuario`) VALUES ('$nome','$apelido'
+    ,'$cpf','$email','$cep','$rua','$numero','$bairro','$cidade','$uf','$nascimento','$senha',
+    '$telefone','$nivel', '$tempero')";
+    // Executa a inserção e fecha a conexão com o banco de dados //
+    mysqli_query($link,$sql);
+    mysqli_close($link);
+    // Redireciona o usuário para a página de listagem de usuários //
+    header('location: listausuarios.php');
     exit();
-}
-$sql ="INSERT INTO `tb_usuarios`(`nome_usuario`, `apelido_usuario`, `cpf_usuario`, `email_usuario`, `cep_usuario`, 
-`rua_usuario`, `numero_rua_usuario`, `bairro_usuario`, `cidade_usuario`, `uf_usuario`, `nascimento_usuario`, `senha_usuario`, 
-`telefone_usuario`, `nivel_usuario`, `tempero_usuario`) VALUES ('$nome','$apelido'
-,'$cpf','$email','$cep','$rua','$numero','$bairro','$cidade','$uf','$nascimento','$senha',
-'$telefone','$nivel','$tempero')";
-
-mysqli_query($link,$sql);
-
-mysqli_close($link);
-header('location: listausuarios.php');
-exit();
-
 }
 ?>
 <!DOCTYPE html>
@@ -121,39 +128,43 @@ include('msg_user.php');
     </form>
 </body>
 </html>
+<!-- JavaScript com comentários para preenchimento automático do endereço via CEP -->
 <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const cepInput = document.getElementById("cep");
- 
-  cepInput.addEventListener("blur", function() {
-                let cep = cepInput.value.replace(/\D/g, ''); // Remove tudo que não é número //
- 
-  if (cep.length === 8) { // Valida se são 8 dígitos //
-                    fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Erro ao buscar o CEP');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (data.erro) {
-                                alert("CEP não encontrado.");
-                                return;
-                            }
-                            // Preenche os campos do formulário
-                            document.getElementById("rua").value = data.logradouro;
-                            document.getElementById("bairro").value = data.bairro;
-                            document.getElementById("cidade").value = data.localidade;
-                            document.getElementById("uf").value = data.uf;
-                        })
-                        .catch(error => {
-                            console.error("Erro na busca do CEP: ", error);
-                            alert("Não foi possível buscar o endereço.");
-                        });
-                } else {
-                    alert("Formato de CEP inválido. Deve conter 8 dígitos numéricos.");
-                }
-            });
+    // Aguarda o carregamento do DOM //
+    document.addEventListener("DOMContentLoaded", function() {
+        const cepInput = document.getElementById("cep");
+
+        // Quando o campo de CEP perde o foco //
+cepInput.addEventListener("blur", function() {
+            let cep = cepInput.value.replace(/\D/g, ''); // Remove tudo que não for número //
+
+            // Se o CEP tiver exatamente 8 dígitos //
+if (cep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Erro ao buscar o CEP');
+                        }
+                        return response.json(); // Converte a resposta em JSON //
+                    })
+                    .then(data => {
+                        if (data.erro) {
+                            alert("CEP não encontrado.");
+                            return;
+                        }
+                        // Preenche os campos do formulário com os dados recebidos //
+                        document.getElementById("rua").value = data.logradouro;
+                        document.getElementById("bairro").value = data.bairro;
+                        document.getElementById("cidade").value = data.localidade;
+                        document.getElementById("uf").value = data.uf;
+                    })
+                    .catch(error => {
+                        console.error("Erro na busca do CEP: ", error);
+                        alert("Não foi possível buscar o endereço.");
+                    });
+            } else {
+                alert("Formato de CEP inválido. Deve conter 8 dígitos numéricos.");
+            }
         });
+    });
 </script>
